@@ -12,9 +12,9 @@ const slice = createSlice({
         captcha: ''
     },
     reducers: {
-        captcha: (state, action) => {
-            state.captcha = action.payload.captcha
-        }
+        // captcha: (state, action) => {
+        //     state.captcha = action.payload.captcha
+        // }
     },
     extraReducers: builder => {
         builder
@@ -26,6 +26,9 @@ const slice = createSlice({
             })
             .addCase(isInitializedApp.fulfilled, (state, action) => {
                 state.isLoggedIn = action.payload.isLoggedIn
+            })
+            .addCase(getCaptcha.fulfilled, (state, action) => {
+                state.captcha = action.payload.captcha
             })
 
     }
@@ -44,10 +47,11 @@ const login = createAppAsyncThunk<{ isLoggedIn: boolean}, LoginParamsType>('auth
                 return {isLoggedIn: true}
             }
             if (res.data.resultCode === ResultCode.Captcha) {
+                dispatch(appActions.setAppStatus({status: 'failed'}))
                 dispatch(authThunks.getCaptcha())
                 return {isLoggedIn: false}
             } else {
-                handleServerAppError(res.data, dispatch)
+                handleServerAppError(res.data, dispatch, true)
                 return rejectWithValue(res.data)
             }
         } catch (e) {
@@ -55,7 +59,7 @@ const login = createAppAsyncThunk<{ isLoggedIn: boolean}, LoginParamsType>('auth
             return rejectWithValue(null)
         }
     })
-const logout = createAppAsyncThunk<{ isLoggedIn: boolean }, void>('auth/logout',
+const logout = createAppAsyncThunk<{ isLoggedIn: boolean}, void>('auth/logout',
     async (_, thunkAPI) => {
         const {dispatch, rejectWithValue} = thunkAPI
         try {
@@ -92,12 +96,12 @@ const isInitializedApp = createAppAsyncThunk<{ isLoggedIn: boolean }, void>('app
             dispatch(appActions.setAppInitialized({isInitialized: true}))
         }
     })
-const getCaptcha = createAppAsyncThunk<string, void>('auth/getCaptcha',
+const getCaptcha = createAppAsyncThunk<{captcha: string}, void>('auth/getCaptcha',
     async (_, thunkAPI) => {
     const {dispatch, rejectWithValue} = thunkAPI
         try {
             const res = await authAPI.getCaptcha()
-            return res.data.url
+            return {captcha: res.data.url}
         } catch (e) {
             handleServerNetworkError(e, dispatch)
             return rejectWithValue(null)

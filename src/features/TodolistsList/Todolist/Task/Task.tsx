@@ -4,6 +4,8 @@ import { Delete } from '@mui/icons-material'
 import { TaskType } from 'features/TodolistsList/todolists.api'
 import { EditableSpan } from 'common/components'
 import { TaskStatuses } from 'common/enums';
+import {useActions} from "common/hooks/useActions";
+import {tasksThunks} from "features/TodolistsList/tasks.reducer";
 
 type TaskPropsType = {
 	task: TaskType
@@ -14,7 +16,8 @@ type TaskPropsType = {
 }
 
 export const Task = React.memo((props: TaskPropsType) => {
-	const onClickHandler = useCallback(() => props.removeTask(props.task.id, props.todolistId), [props.task.id, props.todolistId]);
+	const {removeTask} = useActions(tasksThunks)
+	const onClickHandler = () => removeTask({taskId: props.task.id, todolistId: props.todolistId})
 
 	const onChangeHandler = useCallback((e: ChangeEvent<HTMLInputElement>) => {
 		let newIsDoneValue = e.currentTarget.checked

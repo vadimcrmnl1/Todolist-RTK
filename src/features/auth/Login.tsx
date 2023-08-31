@@ -4,7 +4,7 @@ import {useSelector} from 'react-redux'
 import {Navigate} from 'react-router-dom'
 import {Button, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Grid, TextField} from '@mui/material'
 import {useAppDispatch} from 'common/hooks';
-import {selectIsLoggedIn} from 'features/auth/auth.selectors';
+import {selectCaptchaUrl, selectIsLoggedIn} from 'features/auth/auth.selectors';
 import {authThunks} from "features/auth/auth.reducer";
 import {LoginParamsType} from "features/auth/auth.api";
 import {BaseResponseType, ResponseType} from "common/types";
@@ -13,34 +13,47 @@ export const Login = () => {
     const dispatch = useAppDispatch()
 
     const isLoggedIn = useSelector(selectIsLoggedIn)
+    const captcha = useSelector(selectCaptchaUrl)
+    const errors = {
+        email: '',
+        password: ''
+    }
     const formik = useFormik({
         validate: (values) => {
-            // if (!values.email) {
-            //     return {
-            //         email: 'Email is required'
-            //     }
-            // }
-            // if (!values.password) {
-            //     return {
-            //         password: 'Password is required'
-            //     }
-            // }
 
+            if (!values.email) {
+                return {
+                    email: 'Email is required'
+                }
+            } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email)) {
+                errors.email = 'Invalid email address';
+            }
+            if (!values.password) {
+                return {
+                    password: 'Password is required'
+                }
+            }
+
+            // return errors
         },
         initialValues: {
             email: '',
             password: '',
             rememberMe: false,
+            captcha: '',
         },
         onSubmit: (values, formikHelpers: FormikHelpers<LoginParamsType>) => {
             dispatch(authThunks.login(values))
                 .unwrap()
                 .catch((reason: BaseResponseType<ResponseType>) => {
-                    reason.fieldsErrors.forEach((f) => {
+                    reason.fieldsErrors?.forEach((f) => {
                         formikHelpers.setFieldError(f.field, f.error)
                     })
                 })
+                .finally(formik.resetForm)
+
         },
+
     })
 
     if (isLoggedIn) {
@@ -72,14 +85,17 @@ export const Login = () => {
                             margin="normal"
                             {...formik.getFieldProps("email")}
                         />
-                        {formik.errors.email ? <div>{formik.errors.email}</div> : null}
+                        {formik.errors.email && formik.touched.email ? <div
+                            style={{color: "red"}}>{formik.errors.email}</div> : formik.touched.email && errors.email ?
+                            <div style={{color: 'red'}}>{errors.email}</div> : null}
                         <TextField
                             type="password"
                             label="Password"
                             margin="normal"
                             {...formik.getFieldProps("password")}
                         />
-                        {formik.errors.password ? <div>{formik.errors.password}</div> : null}
+                        {formik.errors.password && formik.touched.password ?
+                            <div style={{color: "red"}}>{formik.errors.password}</div> : null}
                         <FormControlLabel
                             label={'Remember me'}
                             control={<Checkbox
@@ -87,7 +103,15 @@ export const Login = () => {
                                 checked={formik.values.rememberMe}
                             />}
                         />
+                        {captcha &&
+                            <>
+                                <img src={captcha} alt={'captcha'}/>
+                                <TextField label={'Enter captcha'}
+                                           {...formik.getFieldProps('captcha')}/>
+                            </>
+                        }
                         <Button type={'submit'} variant={'contained'} color={'primary'}>Login</Button>
+
                     </FormGroup>
                 </FormControl>
             </form>

@@ -14,7 +14,7 @@ import {
 import {Menu} from '@mui/icons-material'
 import {Login} from 'features/auth/Login'
 import './App.css'
-import {TodolistsList} from 'features/TodolistsList/TodolistsList'
+import {TodolistsList} from 'features/todolists-list/TodolistsList'
 import {ErrorSnackbar} from 'common/components'
 import {selectIsLoggedIn} from 'features/auth/auth.selectors';
 import {selectAppStatus, selectIsInitialized} from 'app/app.selectors';
@@ -26,7 +26,7 @@ function App() {
     const isInitialized = useSelector(selectIsInitialized)
     const isLoggedIn = useSelector(selectIsLoggedIn)
     const {isInitializedApp, logout} = useActions(authThunks)
-
+    console.log(status)
     useEffect(() => {
         isInitializedApp()
     }, [])

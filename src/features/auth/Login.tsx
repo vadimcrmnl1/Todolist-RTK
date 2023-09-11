@@ -14,10 +14,7 @@ export const Login = () => {
 
     const isLoggedIn = useSelector(selectIsLoggedIn)
     const captcha = useSelector(selectCaptchaUrl)
-    const errors = {
-        email: '',
-        password: ''
-    }
+    const errors: Partial<LoginParamsType> = {}
     const formik = useFormik({
         validate: (values) => {
 
@@ -50,7 +47,7 @@ export const Login = () => {
                         formikHelpers.setFieldError(f.field, f.error)
                     })
                 })
-                .finally(formik.resetForm)
+                // .finally(formik.resetForm)
 
         },
 
